@@ -1,0 +1,502 @@
+-- 작성자 : 김준영, 손영석, 손일형, 이수봉
+-- 테이블 및 제약조건 생성 SQL
+-- pj_4w 계정에서 실행
+
+-- 테이블 삭제
+drop table members CASCADE CONSTRAINTS PURGE;
+drop table products CASCADE CONSTRAINTS PURGE;
+drop table qna CASCADE CONSTRAINTS PURGE;
+drop table admin CASCADE CONSTRAINTS PURGE;
+drop table orders CASCADE CONSTRAINTS PURGE;
+
+-- 시퀀스 삭제
+drop sequence member_seq;
+drop sequence product_seq;
+drop sequence qna_seq;
+drop sequence admin_seq;
+drop sequence order_seq;
+
+-- 테이블 생성
+-- 회원 테이블
+create table members(
+    mem_num number(20), 			-- 회원번호
+    mem_id varchar2(20), 			-- 회원ID
+    mem_pw varchar2(20), 			-- 비밀번호
+    mem_name varchar2(20), 			-- 이름
+    email varchar2(40),    			-- 이메일
+    address varchar2(100), 			-- 주소
+    phone varchar2(20),    			-- 전화번호
+    initdate date default sysdate); -- 가입날짜
+
+-- 관리자 테이블
+create table admin(
+    admin_num number(20), 			-- 관리자번호
+    admin_id varchar2(20),			-- 관리자 ID
+    admin_pw varchar2(20),			-- 관리자 PW
+    admin_name varchar2(40)); 		-- 관리자 이름
+    
+-- 상품 테이블
+create table products(
+    pd_num number(20),     					-- 상품번호
+    pd_name varchar2(200), 					-- 상품명
+    kind char(2), 							-- 상품종류(1:인물, 2:환경, 3:건축, 4:일러스트, 5:패턴)
+    cost_price number(20),  				-- 수입가(원가)
+    sell_price number(20),  				-- 판매가
+    pd_content varchar2(2000) default null, -- 상품 설명
+    pd_image varchar2(2000), 				-- 상품 이미지 파일명
+    pd_totalsell number(20) default 0,		-- 누적 판매량
+    sellyn char(1) default 'y', 			-- 판매여부(판매 : y, 판매중단 : n)
+    regdate date default sysdate); 			-- 상품 등록날짜
+
+-- 주문 테이블
+create table orders(
+    order_num number(20),  					-- 주문번호  
+    mem_num number(20),    					-- 회원번호(FK : members.mem_num) 
+    pd_num number(20),   					-- 상품번호(FK : products.pd_num) 
+    basket number(2),  						--  1: 장바구니 2: 구매완료
+    payment varchar2(20) default 'shopping', 	-- 결재수단
+    order_email varchar2(40), 					-- 받을 이메일
+    order_hide char(1) default 'n',  			-- 주문내역 숨김 여부(숨김 : y, 보임 : n)
+    order_date date default sysdate); 			-- 주문날짜
+
+-- QNA 테이블
+create table qna (
+    qna_qseq number(5), 				-- 글번호
+    qna_title varchar(300), 			-- 제목
+    qna_cnt varchar(1000), 				-- 문의내용
+    qna_rep varchar(1000), 				-- 답변내용
+    mem_num number(20), 				-- 작성자(FK : members.mem_num) 
+    repyn char(1) default 'n', 			-- 답변 유무(답변 있음 : y, 없음 : n)  
+    qna_indate date default sysdate); 	-- 작성날짜
+
+-- 테이블 제약조건 지정
+-- 회원 제약조건
+ALTER TABLE pj_4w.members MODIFY mem_num CONSTRAINT MB_MEM_NUM_PK PRIMARY KEY;
+ALTER TABLE pj_4w.members MODIFY mem_id CONSTRAINT MB_MEM_ID_NN NOT NULL;
+ALTER TABLE pj_4w.members MODIFY mem_id CONSTRAINT MB_MEM_ID_UK UNIQUE;
+ALTER TABLE pj_4w.members MODIFY mem_pw CONSTRAINT MB_MEM_PW_NN NOT NULL;
+ALTER TABLE pj_4w.members MODIFY mem_name CONSTRAINT MB_MEM_NAME_NN NOT NULL;
+ALTER TABLE pj_4w.members MODIFY email CONSTRAINT MB_EMAIL_NN NOT NULL;
+ALTER TABLE pj_4w.members MODIFY address CONSTRAINT MB_ADDRESS_NN NOT NULL;
+ALTER TABLE pj_4w.members MODIFY phone CONSTRAINT MB_PHONE_NN NOT NULL;
+
+-- 관리자 제약조건
+ALTER TABLE pj_4w.admin MODIFY admin_num CONSTRAINT AM_ADMIN_NUM_PK PRIMARY KEY;
+ALTER TABLE pj_4w.admin MODIFY admin_id CONSTRAINT AM_ADMIN_ID_NN NOT NULL;
+ALTER TABLE pj_4w.admin MODIFY admin_id CONSTRAINT AM_ADMIN_ID_UK UNIQUE;
+ALTER TABLE pj_4w.admin MODIFY admin_pw CONSTRAINT AM_ADMIN_PW_NN NOT NULL;
+ALTER TABLE pj_4w.admin MODIFY admin_name CONSTRAINT AM_ADMIN_NAME_NN NOT NULL;
+
+-- 상품 제약조건
+ALTER TABLE pj_4w.products MODIFY pd_num CONSTRAINT PD_PD_NUM_PK PRIMARY KEY;
+ALTER TABLE pj_4w.products MODIFY pd_name CONSTRAINT PD_PD_NAME_NN NOT NULL;
+ALTER TABLE pj_4w.products MODIFY pd_name CONSTRAINT PD_PD_NAME_UK UNIQUE;
+ALTER TABLE pj_4w.products MODIFY kind CONSTRAINT PD_KIND_NN NOT NULL;
+ALTER TABLE pj_4w.products MODIFY cost_price CONSTRAINT PD_COST_PRICE_NN NOT NULL;
+ALTER TABLE pj_4w.products MODIFY sell_price CONSTRAINT PD_SELL_PRICE_NN NOT NULL;
+ALTER TABLE pj_4w.products MODIFY pd_image CONSTRAINT PD_PD_IMAGE_NN NOT NULL;
+ALTER TABLE pj_4w.products MODIFY pd_image CONSTRAINT PD_PD_IMAGE_UK UNIQUE;
+ALTER TABLE pj_4w.products MODIFY sellyn CONSTRAINT PD_sellyn_NN NOT NULL;
+ALTER TABLE pj_4w.products MODIFY sellyn CONSTRAINT PD_SELLYN_CK CHECK((sellyn = 'y') or (sellyn = 'n'));
+
+-- 주문 제약조건
+ALTER TABLE pj_4w.orders MODIFY order_num CONSTRAINT OR_ORDER_NUM_PK PRIMARY KEY;
+ALTER TABLE pj_4w.orders MODIFY mem_num CONSTRAINT OR_MEM_NUM_NN NOT NULL;
+ALTER TABLE pj_4w.orders MODIFY pd_num CONSTRAINT OR_PD_NUM_NN NOT NULL;
+ALTER TABLE pj_4w.orders MODIFY basket CONSTRAINT OR_BASKET_NN NOT NULL;
+ALTER TABLE pj_4w.orders MODIFY order_hide CONSTRAINT OR_ORDER_HIDE_NN NOT NULL;
+ALTER TABLE pj_4w.orders MODIFY order_hide CONSTRAINT OR_ORDER_HIDE_CK CHECK((order_hide = 'y') or (order_hide = 'n'));
+
+-- QNA 제약조건
+ALTER TABLE pj_4w.qna MODIFY qna_qseq CONSTRAINT QN_QNA_QSEQ_PK PRIMARY KEY;
+ALTER TABLE pj_4w.qna MODIFY qna_title CONSTRAINT QN_QNA_TITLE_NN NOT NULL;
+ALTER TABLE pj_4w.qna MODIFY qna_cnt CONSTRAINT QN_QNA_CNT_NN NOT NULL;
+ALTER TABLE pj_4w.qna MODIFY mem_num CONSTRAINT QN_MEM_NUM_NN NOT NULL;
+
+-- FOREIGN KEY 제약조건 지정
+ALTER TABLE pj_4w.orders ADD CONSTRAINT OR_ORDER_MEM_NUM_FK FOREIGN KEY(mem_num)
+REFERENCES pj_4w.members(mem_num);
+ALTER TABLE pj_4w.orders ADD CONSTRAINT OR_ORDER_PD_NUM_FK FOREIGN KEY(pd_num)
+REFERENCES pj_4w.products(pd_num);
+ALTER TABLE pj_4w.qna ADD CONSTRAINT QN_QNA_MEM_NUM_FK FOREIGN KEY(mem_num)
+REFERENCES pj_4w.members(mem_num);
+
+-- 시퀀스 생성
+create sequence member_seq start with 1 increment by 1 nocache;
+create sequence product_seq start with 1 increment by 1 nocache;
+create sequence qna_seq start with 1 increment by 1 nocache;
+create sequence admin_seq start with 1 increment by 1 nocache;
+create sequence order_seq start with 1 increment by 1 nocache;
+
+-- Sample Data 입력
+-- 상품 데이터 insert
+-- 인물
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Dylan','1',3000,5000,'나의 어린시절','hum (1).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'DEthan','1',3000,5000,'행복하다','hum (2).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Logan','1',3000,5000,'내일이 온다면','hum (3).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Samuel','1',3000,5000,'너에게 난','hum (4).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Sean','1',3000,5000,'나는 좋다','hum (5).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Ryan','1',3000,5000,'설설날에는','hum (6).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Dustin','1',3000,5000,'프로젝트기간','hum (7).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'DAaron','1',3000,5000,'오늘이 지나간다','hum (8).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Chase','1',3000,5000,'저녁 먹을래?','hum (9).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Aeon','1',3000,5000,'미남입니다','hum (10).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Dante','1',3000,5000,'외국인','hum (11).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Kendrick','1',3000,5000,'밥 잘사주는 누나','hum (12).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Hank','1',3000,5000,'밥 잘먹는 형','hum (13).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Zephyr','1',3000,5000,'동생','hum (14).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Casper','1',3000,5000,'누나','hum (15).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Griffin','1',3000,5000,'퇴근길','hum (16).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Sebastian','1',3000,5000,'설명해주는 너','hum (17).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Joshua','1',3000,5000,'사랑합니다','hum (18).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'James','1',3000,5000,'나의겨울','hum (19).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Noah','1',3000,5000,'너와함꼐','hum (20).jpg');
+
+-- 자연
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Sparrow','2',10000, 22500, '귀여운 참새', 'env (1).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'snow mountains at sunset','2',100000, 260000, '해질녘 눈덮힌 산', 'env (2).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'WET','2',100000, 270000, '새벽을 머금은 습기', 'env (3).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'forest and mountain','2',15000, 29000, '숲과 산', 'env (4).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'grayish','2',9000, 29800, '회색빛이 감도는 자연', 'env (5).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'touch the sky','2',10000, 20000, '하늘에 닿을듯', 'env (6).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'under the tree','2',91000, 126000, '나무그늘 아래에서', 'env (7).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'stone','2',10000, 20000, '바위처럼 단단하게', 'env (8).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'hightree','2',66000, 78000, '높은 나무', 'env (9).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'paramount','2',100000, 200000, '파라마운트', 'env (10).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'jeje','2',10000, 20000, '나의 라임 오렌지나무', 'env (11).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'snow over sky','2',100000, 200000, '눈 하늘을 덮다', 'env (12).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'macro','2',150000, 250000, '나무를 보지말고 숲을 보라', 'env (13).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'sunshine','2',20000, 40000, '그 따스함', 'env (14).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'mirror','2',19000, 25000, '거울같은 강', 'env (15).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'isnt bosung','2',10000, 20000, '보성이 아닙니다', 'env (16).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'waterfall','2',10000, 20000, '엄청난 폭포', 'env (17).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'4leaf','2',1150000, 2290000, '이파리 위 구슬', 'env (18).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'smallmiracle','2',100000, 250000, '작은 기적', 'env (19).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'coastal road','2',10000, 20000, '해안도로', 'env (20).jpg');
+
+-- 건축
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'The Orient House','3',2000,4000,'동양의 전통 가옥','arc (1).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'White Stair','3',2000,7000,'흰색 기조의 실내 계단','arc (2).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Mountain Village','3',5000,10000,'눈 덮인 산장 마을','arc (3).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Ivy-covered Wall','3',3000,6000,'담쟁이 덩굴이 덮인 벽','arc (4).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Patterned Wall','3',3000,6000,'상트페테르부르크 모스크 장식','arc (5).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Modern Architecture','3',10000,20000,'현대적인 양식의 건물 입구','arc (6).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Walt Disney Concert Hall','3',30000,60000,'월트 디즈니 콘서트 홀','arc (7).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Pastel Color Model','3',10000,15000,'알록달록한 건축 모델','arc (8).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Wood Spiral','3',1000,5000,'나선형 목조 계단','arc (9).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Valencia Dome','3',10000,15000,'발렌시아 과학예술종합단지','arc (10).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Modern Building 1','3',1000,2000,'현대적인 감성의 건축물','arc (11).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Modern Building 2','3',1000,2000,'현대적인 감성의 건축물','arc (12).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Grand Mosque','3',20000,40000,'셰이크 자이드 그랜드 모스크','arc (13).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'White Inside','3',5000,8000,'하얀 기조의 건축물 내부','arc (14).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'White Spiral','3',1000,4000,'하얀 기조의 나선형 계단','arc (15).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Senbon Torii','3',2000,4000,'후시미이나리신사에서 볼 수 있는 1000개의 토리이','arc (16).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Send Castle','3',3000,5000,'사막의 모래성','arc (17).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Belgium Architecture','3',100000,200000,'벨기에의 자하하디드 건축양식','arc (18).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Modern Building 3','3',50000,70000,'현대적인 빌딩','arc (19).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'The Parthenon','3',10000,50000,'아테네 파르테논 신전','arc (20).jpg');
+
+-- 일러스트
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'FELL HOUND','4',10000, 20000, '손일형 작가의 첫 출품작입니다.', 'ill (2).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'shit','4',1550000, 2780000, '정신착란 환자가 그려낸 자신의 마음속', 'ill (3).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'fill blue','4',100000, 350000, '파랑주의보', 'ill (4).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'barely holding','4',100000, 350000, '작은 기둥은 큰 천장을 버틴다', 'ill (5).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'delirium','4',445000, 741000, '譫妄', 'ill (6).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'pink wave','4',356000, 744000, '핑크의 파도', 'ill (7).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'pink wave2','4',600000, 1000000, '핑크의 파도 그 두번째', 'ill (8).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'orange juice','4',464000, 1200000, '오렌지 쥬스에 LSD를 타먹어보세요', 'ill (9).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'my own dna','4',750000, 1000000, '내 DNA를 느끼다', 'ill (10).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'north to south','4',225000, 779000, '북에서 남쪽으로', 'ill (11).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'fuck flower','4',250000, 750000, '-같은 꽃', 'ill (12).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'look at me','4',795000, 990000, '나를 보고있지만 나를 보고있지 않는 여인', 'ill (13).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'scarf line','4',4454000, 7745000, '스카프와 선', 'ill (14).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'pink venom','4',797000, 998000, '분홍색 괴물', 'ill (15).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'abstract sand','4',150000, 450000, '혼란의 모래사장', 'ill (16).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'blue venom','4',450000, 600000, '파란색 괴물', 'ill (17).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'red alert','4',65000, 150000, '적색경보', 'ill (18).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'in the psychiatric','4',1000000, 2000000, '정신병원에서', 'ill (19).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'River of Psychopaths','4',646500, 797500, '사이코패스의 강', 'ill (20).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'massacre','4',950000, 2100000, '대학살', 'ill (21).jpg');
+
+-- 패턴
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'dreamily','5',3000,5000,'반복적인 하루','pat (1).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'remnant','5',3000,5000,'나무','pat (2).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'complete','5',3000,5000,'똑같은 일상','pat (3).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'upright','5',3000,5000,'반대','pat (4).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'run','5',3000,5000,'비대칭','pat (5).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'forearm','5',3000,5000,'왼쪽오른쪽','pat (6).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'even','5',3000,5000,'닮은두면','pat (7).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'worthy','5',3000,5000,'반복패턴','pat (8).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Cfervently','5',3000,5000,'물음표','pat (9).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'consequently','5',3000,5000,'돌고도는','pat (10).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'gran','5',3000,5000,'한결같은','pat (11).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Koof','5',3000,5000,'좋은 물결','pat (12).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'if then','5',3000,5000,'흘러가는 공기','pat (13).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'awake','5',3000,5000,'닮은 모양','pat (14).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'circar','5',3000,5000,'반대가 똑같다','pat (15).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'astride','5',3000,5000,'동그라미','pat (16).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'diver','5',3000,5000,'위 아래','pat (17).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'Jdoshua','5',3000,5000,'자연의 힘','pat (18).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'loudly','5',3000,5000,'봄여름겨울','pat (19).jpg');
+
+INSERT INTO products(PD_NUM, PD_NAME, KIND, COST_PRICE, SELL_PRICE, PD_CONTENT, PD_IMAGE)
+VALUES(PRODUCT_SEQ.nextval,'before','5',3000,5000,'바람과 비','pat (20).jpg');
+
+-- 회원 데이터 insert
+INSERT INTO pj_4w.members(mem_num, mem_id, mem_pw, mem_name, email, address, phone, initdate)
+VALUES(MEMBER_SEQ.nextval, 'qwer', 'qwer', 'QWER', 'qwer@naver.com',
+'서울특별시 종로구 혜화동', '010-1234-1234', sysdate);
+INSERT INTO pj_4w.members(mem_num, mem_id, mem_pw, mem_name, email, address, phone, initdate)
+VALUES(MEMBER_SEQ.nextval, 'zxcv', 'zxcv', 'ZXCV', 'zxcv@naver.com',
+'부산광역시 해운대구 송정동', '010-1212-3434', sysdate);
+INSERT INTO pj_4w.members(mem_num, mem_id, mem_pw, mem_name, email, address, phone, initdate)
+VALUES(MEMBER_SEQ.nextval, 'id', 'pw', '홍길동', 'hong@4w.com',
+'서울특별시 종로구 혜화동', '010-1234-5678', sysdate);
+INSERT INTO pj_4w.members(mem_num, mem_id, mem_pw, mem_name, email, address, phone, initdate)
+VALUES(MEMBER_SEQ.nextval, 'test', 'test', '테스트', 'test@test.com',
+'서울특별시 용산구 용문동', '010-1111-2222', sysdate);
+INSERT INTO pj_4w.members(mem_num, mem_id, mem_pw, mem_name, email, address, phone, initdate)
+VALUES(MEMBER_SEQ.nextval, 'asdf', 'asdf', 'ASDF', 'asdf@naver.com',
+'서울특별시 강남구 신사동', '010-9876-5432', sysdate);
+INSERT INTO pj_4w.members(mem_num, mem_id, mem_pw, mem_name, email, address, phone, initdate)
+VALUES(MEMBER_SEQ.nextval, 'kkk', 'kkk', 'K3', 'k3@gmail.com',
+'강원도 원주시 흥업면', '010-3333-9999', sysdate);
+INSERT INTO pj_4w.members(mem_num, mem_id, mem_pw, mem_name, email, address, phone, initdate)
+VALUES(MEMBER_SEQ.nextval, 'kosa', 'kosa', 'KOSA', 'kosa@sw.or.kr',
+'서울특별시 송파구 가락동', '02-2188-2188', sysdate);
+INSERT INTO pj_4w.members(mem_num, mem_id, mem_pw, mem_name, email, address, phone, initdate)
+VALUES(MEMBER_SEQ.nextval, 'abc', 'abc', '알파벳', 'abc@gmail.com',
+'서울특별시 종로구 혜화동', '010-1313-7979', sysdate);
+INSERT INTO pj_4w.members(mem_num, mem_id, mem_pw, mem_name, email, address, phone, initdate)
+VALUES(MEMBER_SEQ.nextval, 'sung', 'sung', '성균관', 'sung@skku.com',
+'서울특별시 종로구 혜화동', '02-760-1414', sysdate);
+INSERT INTO pj_4w.members(mem_num, mem_id, mem_pw, mem_name, email, address, phone, initdate)
+VALUES(MEMBER_SEQ.nextval, 'mistletoe', '1234', '겨우살이', 'mistletoe@4w.com',
+'인천광역시 남동구 간석동', '010-6688-6699', sysdate);
+
+-- QNA 데이터 insert
+INSERT INTO qna(qna_qseq, qna_title, qna_cnt, mem_num)
+VALUES(qna_seq.nextval, 'test', 'test', '1');
+INSERT INTO qna(qna_qseq, qna_title, qna_cnt, mem_num)
+VALUES(QNA_SEQ.nextval, 'test2', 'test2', '2');
+
+-- 관리자 데이터 insert
+INSERT INTO admin VALUES(ADMIN_SEQ.nextval, 'admin', 'admin', '관리자');
+
+commit;
+
+-- 뷰 생성
+CREATE OR REPLACE VIEW pj_4w.OPV AS
+select od.order_num,od.mem_num,od.basket,od.payment,od.order_email,od.order_hide,od.order_date,
+pd.pd_num,pd.pd_name,pd.sell_price,pd.pd_content,pd.pd_image,pd.sellyn
+from orders od join products pd on od.pd_num = pd.pd_num  
+order by od.order_num asc;
+
+-- ID 중복체크 시 사용할 뷰 생성
+--(members ID 혹은 admin ID와 동일한 ID 생성 불가하도록)
+CREATE OR REPLACE VIEW pj_4w.ID_LIST
+AS select mem_id from pj_4w.members
+UNION
+select admin_id from pj_4w.admin;
+
+-- Q&A 게시판에서 사용할 뷰 생성
+CREATE OR REPLACE VIEW pj_4w.MQV
+AS select qn.qna_cnt, qn.qna_indate, qn.qna_qseq,
+qn.qna_rep,  qn.qna_title,  qn.repyn,  mb.mem_id, qn.mem_num
+from members mb join qna qn on qn.mem_num = mb.mem_num;
+
+commit;
+

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Context>
+	<WatchedResource>WEB-INF/web.xml</WatchedResource>
+	<Resource name="jdbc/oracle" auth="Container"
+			  type="javax.sql.DataSource"
+			  driverClassName="oracle.jdbc.OracleDriver"
+			  url="jdbc:oracle:thin:@127.0.0.1:1521/xepdb1"
+			  username="pj_4w" password="pj_4w"
+			  maxTotal="20" maxIdle="10" maxWaitMillis="-1"/>
+	<Resources cachingAllowed="true" cacheMaxSize="100000"/>
+</Context>

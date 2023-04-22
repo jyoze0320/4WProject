@@ -1,0 +1,7 @@
+-- [SYSTEM에서 실행]
+
+create user pj_4w identified by pj_4w;		-- 계정 생성
+grant resource, connect to pj_4w;			-- resource 및 connect 롤 권한 부여
+grant create view to pj_4w;					-- 뷰 생성 권한
+alter user pj_4w quota UNLIMITED on users;	-- 용량 무제한
+--GRANT CONNECT, DBA, RESOURCE TO pj_4w;

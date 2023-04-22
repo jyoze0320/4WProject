@@ -1,0 +1,37 @@
+body {
+    font-family:'Noto Sans KR', sans-serif;
+ 	-ms-overflow-style: none;
+}
+
+header {
+    width: 100% !important;
+    height: 135px !important;
+}
+
+header tr td {
+	padding: 10px;
+}
+
+header #logo img {
+    width: 38%;
+	height: auto;
+}
+
+header #login_menu {
+    position: relative !important;
+    float: right !important;
+	margin : 15px 30px 30px 30px;
+}
+
+header #login_menu img{	
+	width: auto;
+	height: 50px;
+	text-decoration:none;
+}
+
+table {
+    width: 100%;
+    padding : 2px;
+}
+  
+
